@@ -11,32 +11,22 @@
         font-weight: 600;
     }
     .month-badge {
-        background: #1e3a5f;
-        color: white;
-        padding: 10px 18px;
-        border-radius: 8px;
+        background: rgba(30, 58, 95, 0.1);
+        color: #1e3a5f;
+        padding: 8px 16px;
+        border-radius: 20px;
         font-weight: 600;
+        font-size: 0.9rem;
     }
     .salary-highlight {
         background: #f7fafc;
         font-weight: 600;
         color: #1e3a5f;
     }
-    .gradient-btn {
-        background: #1e3a5f;
-        border: none;
-    }
-    .gradient-btn:hover {
-        background: #2c5282;
-        color: white;
-    }
-    .secondary-btn {
-        background: #718096;
-        border: none;
-    }
-    .secondary-btn:hover {
-        background: #4a5568;
-        color: white;
+    .table thead th {
+        background: #f7fafc !important;
+        color: #1e3a5f !important;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
@@ -63,12 +53,12 @@
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn gradient-btn w-100">
+                    <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-file-invoice-dollar me-2"></i>Generate Report
                     </button>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <a href="{% url 'dashboard:salary_report' %}" class="btn secondary-btn w-100">
+                    <a href="{% url 'dashboard:salary_report' %}" class="btn btn-outline-secondary w-100">
                         <i class="fas fa-redo me-2"></i>Reset
                     </a>
                 </div>
@@ -95,7 +85,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
-                            <tr style="background: #1e3a5f; color: white;">
+                            <tr>
                                 <th><i class="fas fa-list me-2"></i>SL</th>
                                 <th><i class="fas fa-user me-2"></i>Employee Name</th>
                                 <th><i class="fas fa-id-badge me-2"></i>Employee ID</th>
@@ -129,19 +119,19 @@
                                     </div>
                                 </td>
                                 <td>#{{ data.employee.employee_id }}</td>
-                                <td><span class="badge bg-secondary">{{ data.employee.get_category_display }}</span></td>
+                                <td><span class="badge" style="background: rgba(113, 128, 150, 0.15); color: #4a5568;">{{ data.employee.get_category_display }}</span></td>
                                 <td>{{ data.employee.department }}</td>
-                                <td class="text-success fw-bold">৳ {{ data.gross_salary|floatformat:2 }}</td>
+                                <td class="fw-bold" style="color: #38a169;">৳ {{ data.gross_salary|floatformat:2 }}</td>
                                 <td>{{ data.working_days }}</td>
-                                <td><span class="badge bg-success">{{ data.present_days }}</span></td>
-                                <td><span class="badge bg-danger">{{ data.absent_days }}</span></td>
-                                <td><span class="badge bg-warning">{{ data.leave_days }}</span></td>
+                                <td><span class="badge" style="background: rgba(56, 161, 105, 0.15); color: #38a169;">{{ data.present_days }}</span></td>
+                                <td><span class="badge" style="background: rgba(229, 62, 62, 0.15); color: #e53e3e;">{{ data.absent_days }}</span></td>
+                                <td><span class="badge" style="background: rgba(214, 158, 46, 0.15); color: #d69e2e;">{{ data.leave_days }}</span></td>
                                 <td>{{ data.late_minutes }}</td>
                                 <td>{{ data.early_leave_minutes }}</td>
                                 <td>{{ data.break_late_minutes }}</td>
                                 <td>{{ data.lwp_days }}</td>
-                                <td class="text-danger">৳ {{ data.lwp_deduction|floatformat:2 }}</td>
-                                <td class="text-warning">৳ {{ data.late_penalty|floatformat:2 }}</td>
+                                <td style="color: #e53e3e;">৳ {{ data.lwp_deduction|floatformat:2 }}</td>
+                                <td style="color: #d69e2e;">৳ {{ data.late_penalty|floatformat:2 }}</td>
                                 <td>৳ {{ data.per_day_salary|floatformat:2 }}</td>
                                 <td class="salary-highlight">৳ {{ data.final_salary|floatformat:2 }}</td>
                             </tr>
