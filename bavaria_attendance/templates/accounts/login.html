@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Bavaria Garments{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 50%, #1e3a5f 100%);
+        background-size: 200% 200%;
+        padding: 20px;
+    }
+    
+    .login-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 50px;
+        width: 100%;
+        max-width: 420px;
+    }
+    
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .login-header .brand-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(30, 58, 95, 0.3);
+    }
+    
+    .login-header h2 {
+        color: #1a202c;
+        font-weight: 700;
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+    
+    .login-header p {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        background: #f7fafc;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+    }
+    
+    .form-control:focus {
+        border-color: #1e3a5f;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-login {
+        border-radius: 10px;
+        padding: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .btn-login:hover {
+        background: linear-gradient(135deg, #2c5282 0%, #1e3a5f 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    .login-footer {
+        text-align: center;
+        margin-top: 25px;
+    }
+    
+    .login-footer small {
+        color: #a0aec0;
+    }
+    
+ {
+        cursor    .password-toggle: pointer;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        transition: color 0.2s ease;
+    }
+    
+    .password-toggle:hover {
+        color: #1e3a5f;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+    }
+    
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .divider span {
+        padding: 0 15px;
+        color: #a0aec0;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="brand-icon">
+                <i class="fas fa-industry"></i>
+            </div>
+            <h2>Bavaria Garments</h2>
+            <p>Employee Attendance System</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="border-radius: 10px; border: none; background: #fee2e2; color: #c53030;">
+                {% for error in form.non_field_errors %}
+                <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                <label class="form-label"><i class="fas fa-user me-2 text-muted"></i>Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label"><i class="fas fa-lock me-2 text-muted"></i>Password</label>
+                <div class="input-group">
+                    <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Enter your password" required>
+                    <span class="password-toggle" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </button>
+            </div>
+        </form>
+        
+        <div class="login-footer">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Default: admin / admin123
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}

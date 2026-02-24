@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit{% endif %} Holiday - Bavaria Garments{% endblock %}
+{% block page_title %}{% if object %}Edit{% else %}Add{% endif %} Holiday{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>{% if object %}Edit{% else %}Add{% endif %} Holiday</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+                <label class="form-label">Date *</label>
+                {% if object %}
+                <input type="date" name="date" class="form-control" value="{{ object.date|date:'Y-m-d' }}" required>
+                {% else %}
+                <input type="date" name="date" class="form-control" value="{{ form.date.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Holiday Type *</label>
+                <select name="holiday_type" class="form-select" required>
+                    <option value="">Select Type</option>
+                    <option value="Friday" {% if form.holiday_type.value == 'Friday' or object and object.holiday_type == 'Friday' %}selected{% endif %}>Friday</option>
+                    <option value="Public Holiday" {% if form.holiday_type.value == 'Public Holiday' or object and object.holiday_type == 'Public Holiday' %}selected{% endif %}>Public Holiday</option>
+                    <option value="Religion Day" {% if form.holiday_type.value == 'Religion Day' or object and object.holiday_type == 'Religion Day' %}selected{% endif %}>Religion Day</option>
+                    <option value="Company Off" {% if form.holiday_type.value == 'Company Off' or object and object.holiday_type == 'Company Off' %}selected{% endif %}>Company Off</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                {% if object %}
+                <textarea name="description" class="form-control" rows="3">{{ object.description|default:'' }}</textarea>
+                {% else %}
+                <textarea name="description" class="form-control" rows="3">{{ form.description.value|default:'' }}</textarea>
+                {% endif %}
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save
+                </button>
+                <a href="{% url 'holidays:holiday_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

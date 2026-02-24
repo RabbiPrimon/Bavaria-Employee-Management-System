@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employees - Bavaria Garments{% endblock %}
+{% block page_title %}Employee Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-active { 
+        color: #38a169;
+        background: rgba(56, 161, 105, 0.1);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .status-inactive { 
+        color: #e53e3e;
+        background: rgba(229, 62, 62, 0.1);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .employee-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        background: #1e3a5f;
+        color: white;
+    }
+    .action-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    .header-text {
+        color: #1e3a5f;
+        font-weight: 600;
+    }
+    .search-box {
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+    }
+    .search-box:focus {
+        border-color: #1e3a5f;
+        box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+    }
+    .category-badge {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="filter-section">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name or ID" value="{{ request.GET.search|default:'' }}">
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                <option value="8 hours" {% if request.GET.category == '8 hours' %}selected{% endif %}>8 Hours</option>
+                <option value="11 hours" {% if request.GET.category == '11 hours' %}selected{% endif %}>11 Hours</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="">All Status</option>
+                <option value="true" {% if request.GET.status == 'true' %}selected{% endif %}>Active</option>
+                <option value="false" {% if request.GET.status == 'false' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="department" class="form-control" placeholder="Department" value="{{ request.GET.department|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-2"></i>Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h5 class="mb-0 header-text"><i class="fas fa-users me-2"></i>Employee List</h5>
+        {% if user.is_admin or user.is_hr %}
+        <a href="{% url 'employees:employee_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add Employee
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th><i class="fas fa-user me-2"></i>Name</th>
+                        <th><i class="fas fa-clock me-2"></i>Category</th>
+                        <th><i class="fas fa-building me-2"></i>Department</th>
+                        <th><i class="fas fa-money-bill-wave me-2"></i>Gross Salary</th>
+                        <th><i class="fas fa-calendar-plus me-2"></i>Joining Date</th>
+                        <th><i class="fas fa-toggle-on me-2"></i>Status</th>
+                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td><span class="fw-bold">#{{ employee.id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="employee-avatar me-3">
+                                    {{ employee.name|make_list|first|upper }}
+                                </div>
+                                <strong>{{ employee.name }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge category-badge bg-secondary">
+                                {{ employee.category }}
+                            </span>
+                        </td>
+                        <td>{{ employee.department }}</td>
+                        <td><span class="fw-bold text-success">৳ {{ employee.gross_salary|floatformat:2 }}</span></td>
+                        <td>{{ employee.joining_date }}</td>
+                        <td>
+                            {% if employee.status %}
+                            <span class="status-active"><i class="fas fa-check-circle me-1"></i>Active</span>
+                            {% else %}
+                            <span class="status-inactive"><i class="fas fa-times-circle me-1"></i>Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'employees:employee_detail' employee.pk %}" class="btn action-btn btn-info text-white" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if user.is_admin or user.is_hr %}
+                            <a href="{% url 'employees:employee_update' employee.pk %}" class="btn action-btn btn-warning text-white" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'employees:employee_toggle_status' employee.pk %}" class="btn action-btn {% if employee.status %}btn-danger{% else %}btn-success{% endif %} text-white" title="{% if employee.status %}Deactivate{% else %}Activate{% endif %}">
+                                <i class="fas fa-toggle-{% if employee.status %}off{% else %}on{% endif %}"></i>
+                            </a>
+                            {% endif %}
+                            {% if user.is_admin %}
+                            <form method="POST" action="{% url 'employees:delete_employee' employee.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn action-btn btn-danger text-white" title="Delete" onclick="return confirm('Are you sure you want to delete this employee?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-users-slash fa-3x mb-3 d-block" style="color: #cbd5e0;"></i>
+                                <p class="mb-0">No employees found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if employees.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if employees.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ employees.previous_page_number }}" style="border-radius: 6px; margin: 0 3px;">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in employees.paginator.page_range %}
+            {% if employees.number == num %}
+            <li class="page-item active">
+                <span class="page-link" style="border-radius: 6px; margin: 0 3px; background: #1e3a5f; border-color: #1e3a5f;">{{ num }}</span>
+            </li>
+            {% elif num > employees.number|add:'-3' and num < employees.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}" style="border-radius: 6px; margin: 0 3px;">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if employees.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ employees.next_page_number }}" style="border-radius: 6px; margin: 0 3px;">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        <li class="page-item">
+            <span class="page-link text-muted" style="border-radius: 6px; margin: 0 3px;">
+                Page {{ employees.number }} of {{ employees.paginator.num_pages }}
+            </span>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

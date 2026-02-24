@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Employee - Bavaria Garments{% endblock %}
+{% block page_title %}{% if object %}Edit Employee{% else %}Add New Employee{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>{% if object %}Edit Employee{% else %}Add New Employee{% endif %}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+                <label class="form-label">Employee Name *</label>
+                {% if object %}
+                <input type="text" name="name" class="form-control" value="{{ object.name }}" required>
+                {% else %}
+                <input type="text" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Category *</label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select Category</option>
+                    <option value="8 hours" {% if form.category.value == '8 hours' or object and object.category == '8 hours' %}selected{% endif %}>8 Hours</option>
+                    <option value="11 hours" {% if form.category.value == '11 hours' or object and object.category == '11 hours' %}selected{% endif %}>11 Hours</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Gross Salary *</label>
+                {% if object %}
+                <input type="number" name="gross_salary" class="form-control" step="0.01" value="{{ object.gross_salary }}" required>
+                {% else %}
+                <input type="number" name="gross_salary" class="form-control" step="0.01" value="{{ form.gross_salary.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Department *</label>
+                {% if object %}
+                <input type="text" name="department" class="form-control" value="{{ object.department }}" required>
+                {% else %}
+                <input type="text" name="department" class="form-control" value="{{ form.department.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Joining Date *</label>
+                {% if object %}
+                <input type="date" name="joining_date" class="form-control" value="{{ object.joining_date|date:'Y-m-d' }}" required>
+                {% else %}
+                <input type="date" name="joining_date" class="form-control" value="{{ form.joining_date.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="status" id="id_status" {% if form.status.value or object and object.status %}checked{% endif %}>
+                    <label class="form-check-label" for="id_status">
+                        Active
+                    </label>
+                </div>
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save Employee
+                </button>
+                <a href="{% url 'employees:employee_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

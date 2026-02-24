@@ -1,0 +1,646 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Bavaria Garments{% endblock %}
+{% block page_title %}Centralized Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .stat-card .icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+    .stat-card .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a202c;
+    }
+    .stat-card .stat-text {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+    .calendar-day {
+        height: 85px;
+        border: 1px solid #e2e8f0;
+        padding: 8px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+    .calendar-day:hover {
+        background: #f7fafc;
+    }
+    .calendar-day.friday {
+        background: #fef3c7;
+    }
+    .calendar-day.holiday {
+        background: #fee2e2;
+    }
+    .calendar-day.leave {
+        background: #dbeafe;
+    }
+    .calendar-day.present {
+        background: #d1fae5;
+    }
+    .calendar-day.absent {
+        background: #fee2e2;
+    }
+    .leave-badge {
+        font-size: 8px;
+        padding: 2px 5px;
+        border-radius: 4px;
+    }
+    .header-text {
+        color: #1e3a5f;
+    }
+    .leave-badge-large {
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="filter-section">
+    <form id="filterForm" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-user me-2 text-muted"></i>Employee</label>
+            <select name="employee" id="employeeFilter" class="form-select">
+                <option value="">All Employees</option>
+                {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+                    {{ emp.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-calendar me-2 text-muted"></i>Month</label>
+            <select name="month" id="monthFilter" class="form-select">
+                {% for m in months %}
+                <option value="{{ m.0 }}" {% if selected_month == m.0 %}selected{% endif %}>{{ m.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label"><i class="fas fa-calendar-year me-2 text-muted"></i>Year</label>
+            <select name="year" id="yearFilter" class="form-select">
+                {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label"><i class="fas fa-tags me-2 text-muted"></i>Category</label>
+            <select name="category" id="categoryFilter" class="form-select">
+                <option value="">All Categories</option>
+                <option value="8 hours" {% if selected_category == '8 hours' %}selected{% endif %}>8 Hours</option>
+                <option value="11 hours" {% if selected_category == '11 hours' %}selected{% endif %}>11 Hours</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-filter me-2"></i>Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    {% if selected_employee_obj and salary_data %}
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Gross Salary</div>
+                        <div class="stat-number">৳ {{ salary_data.gross_salary|floatformat:2 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-primary">
+                        <i class="fas fa-money-bill-wave text-primary-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Working Days</div>
+                        <div class="stat-number">{{ salary_data.working_days }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-success">
+                        <i class="fas fa-calendar-check text-success-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Working Hours</div>
+                        <div class="stat-number">{{ salary_data.due_duty_hours|floatformat:1 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-info">
+                        <i class="fas fa-clock text-info-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Present Days</div>
+                        <div class="stat-number">{{ salary_data.present_days }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-success">
+                        <i class="fas fa-user-check text-success-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Total Employees</div>
+                        <div class="stat-number">{{ total_employees|default:0 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-primary">
+                        <i class="fas fa-users text-primary-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Total Gross Salary</div>
+                        <div class="stat-number">৳ {{ total_gross_salary|floatformat:2 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-success">
+                        <i class="fas fa-money-bill-wave text-success-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Working Days</div>
+                        <div class="stat-number">{{ total_days }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-info">
+                        <i class="fas fa-calendar-day text-info-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Present Records</div>
+                        <div class="stat-number">{{ total_present|default:0 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-success">
+                        <i class="fas fa-user-check text-success-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    {% if selected_employee_obj and salary_data %}
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Absent Days</div>
+                        <div class="stat-number">{{ salary_data.absent_days }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-danger">
+                        <i class="fas fa-user-times text-danger-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Total Late (min)</div>
+                        <div class="stat-number">{{ salary_data.late_minutes }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-warning">
+                        <i class="fas fa-hourglass-half text-warning-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Early Leave (min)</div>
+                        <div class="stat-number">{{ salary_data.early_leave_minutes }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-warning">
+                        <i class="fas fa-sign-out-alt text-warning-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Total Payable</div>
+                        <div class="stat-number">৳ {{ salary_data.final_salary|floatformat:2 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-primary">
+                        <i class="fas fa-wallet text-primary-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-text mb-1">Absent Records</div>
+                        <div class="stat-number">{{ total_absent|default:0 }}</div>
+                    </div>
+                    <div class="icon-wrapper bg-icon-danger">
+                        <i class="fas fa-user-times text-danger-custom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Leave Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 header-text"><i class="fas fa-calendar-minus me-2"></i>Leave Summary</h5>
+            </div>
+            <div class="card-body">
+                {% if selected_employee_obj and salary_data %}
+                <div class="row text-center">
+                    <div class="col">
+                        <span class="badge bg-primary leave-badge-large">SL: {{ salary_data.leave_summary.SL }}</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-success leave-badge-large">CL: {{ salary_data.leave_summary.CL }}</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-info leave-badge-large">PL: {{ salary_data.leave_summary.PL }}</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-warning leave-badge-large">ML: {{ salary_data.leave_summary.ML }}</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-danger leave-badge-large">LWP: {{ salary_data.leave_summary.LWP }}</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-secondary leave-badge-large">WL: {{ salary_data.leave_summary.WL }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="row text-center">
+                    <div class="col">
+                        <span class="badge bg-primary leave-badge-large">SL: 0</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-success leave-badge-large">CL: 0</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-info leave-badge-large">PL: 0</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-warning leave-badge-large">ML: 0</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-danger leave-badge-large">LWP: 0</span>
+                    </div>
+                    <div class="col">
+                        <span class="badge bg-secondary leave-badge-large">WL: 0</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar View -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 header-text"><i class="fas fa-calendar me-2"></i>Calendar View - {{ month_name }} {{ selected_year }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered calendar-table">
+                        <thead>
+                            <tr class="table-light text-center">
+                                <th class="text-danger">Sun</th>
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th class="text-warning">Fri</th>
+                                <th class="text-info">Sat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in calendar_data %}
+                            <tr>
+                                {% for day in week %}
+                                <td class="calendar-day {% if day.is_friday %}friday{% endif %} {% if day.is_holiday %}holiday{% endif %} {% if day.has_leave %}leave{% endif %} {% if day.has_attendance and day.attendance.status == 'present' %}present{% endif %} {% if day.has_attendance and day.attendance.status == 'absent' %}absent{% endif %}">
+                                    {% if day.day > 0 %}
+                                    <div class="fw-bold mb-1">{{ day.day }}</div>
+                                    {% if day.has_leave %}
+                                        {% for leave in day.leaves %}
+                                        <span class="badge bg-info leave-badge">{{ leave.leave_type }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if day.holiday %}
+                                    <span class="badge bg-danger leave-badge">{{ day.holiday.holiday_type }}</span>
+                                    {% endif %}
+                                    {% if day.is_friday %}
+                                    <span class="badge bg-warning leave-badge">Friday</span>
+                                    {% endif %}
+                                    {% if day.has_attendance and day.attendance.status == 'present' %}
+                                    <span class="badge bg-success leave-badge">P</span>
+                                    {% endif %}
+                                    {% if day.has_attendance and day.attendance.status == 'absent' %}
+                                    <span class="badge bg-danger leave-badge">A</span>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <span class="me-3"><span class="badge bg-success">&nbsp;</span> Present</span>
+                    <span class="me-3"><span class="badge bg-danger">&nbsp;</span> Absent</span>
+                    <span class="me-3"><span class="badge bg-warning">&nbsp;</span> Friday</span>
+                    <span class="me-3"><span class="badge bg-info">&nbsp;</span> Holiday</span>
+                    <span class="me-3"><span class="badge bg-light border">&nbsp;</span> Leave</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary-custom"></i>Present vs Absent</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="attendancePieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2 text-success-custom"></i>Leave Types</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="leaveBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-warning-custom"></i>Late Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="lateChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#718096';
+        
+        // Attendance Pie Chart
+        const attendanceCtx = document.getElementById('attendancePieChart').getContext('2d');
+        new Chart(attendanceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent', 'Leave'],
+                datasets: [{
+                    data: [
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.present_days }}{% else %}{{ total_present|default:0 }}{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.absent_days }}{% else %}{{ total_absent|default:0 }}{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_days }}{% else %}0{% endif %}
+                    ],
+                    backgroundColor: ['#38a169', '#e53e3e', '#3182ce'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // Leave Bar Chart
+        const leaveCtx = document.getElementById('leaveBarChart').getContext('2d');
+        new Chart(leaveCtx, {
+            type: 'bar',
+            data: {
+                labels: ['SL', 'CL', 'PL', 'ML', 'LWP', 'WL'],
+                datasets: [{
+                    label: 'Days',
+                    data: [
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.SL }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.CL }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.PL }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.ML }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.LWP }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.leave_summary.WL }}{% else %}0{% endif %}
+                    ],
+                    backgroundColor: [
+                        '#1e3a5f',
+                        '#38a169',
+                        '#3182ce',
+                        '#d69e2e',
+                        '#e53e3e',
+                        '#718096'
+                    ],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Late Summary Chart
+        const lateCtx = document.getElementById('lateChart').getContext('2d');
+        new Chart(lateCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Late Min', 'Early Leave', 'Break Late'],
+                datasets: [{
+                    label: 'Minutes',
+                    data: [
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.late_minutes }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.early_leave_minutes }}{% else %}0{% endif %},
+                        {% if selected_employee_obj and salary_data %}{{ salary_data.break_late_minutes }}{% else %}0{% endif %}
+                    ],
+                    backgroundColor: [
+                        '#e53e3e',
+                        '#d69e2e',
+                        '#3182ce'
+                    ],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Auto-submit form on filter change
+        const filterForm = document.getElementById('filterForm');
+        const employeeFilter = document.getElementById('employeeFilter');
+        const monthFilter = document.getElementById('monthFilter');
+        const categoryFilter = document.getElementById('categoryFilter');
+
+        [employeeFilter, monthFilter, categoryFilter].forEach(filter => {
+            filter.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

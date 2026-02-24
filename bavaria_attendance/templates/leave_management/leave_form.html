@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit{% endif %} Leave - Bavaria Garments{% endblock %}
+{% block page_title %}{% if object %}Edit{% else %}Add{% endif %} Leave{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-calendar-minus me-2"></i>{% if object %}Edit{% else %}Add{% endif %} Leave</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+                <label class="form-label">Employee *</label>
+                {{ form.employee }}
+                {% if form.employee.errors %}
+                <div class="text-danger">{{ form.employee.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Date *</label>
+                {% if object %}
+                <input type="date" name="date" class="form-control" value="{{ object.date|date:'Y-m-d' }}" required>
+                {% else %}
+                <input type="date" name="date" class="form-control" value="{{ form.date.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Leave Type *</label>
+                <select name="leave_type" class="form-select" required>
+                    <option value="">Select Type</option>
+                    <option value="SL" {% if form.leave_type.value == 'SL' or object and object.leave_type == 'SL' %}selected{% endif %}>Sick Leave</option>
+                    <option value="CL" {% if form.leave_type.value == 'CL' or object and object.leave_type == 'CL' %}selected{% endif %}>Casual Leave</option>
+                    <option value="PL" {% if form.leave_type.value == 'PL' or object and object.leave_type == 'PL' %}selected{% endif %}>Privilege Leave</option>
+                    <option value="ML" {% if form.leave_type.value == 'ML' or object and object.leave_type == 'ML' %}selected{% endif %}>Maternity Leave</option>
+                    <option value="LWP" {% if form.leave_type.value == 'LWP' or object and object.leave_type == 'LWP' %}selected{% endif %}>Leave Without Pay</option>
+                    <option value="WL" {% if form.leave_type.value == 'WL' or object and object.leave_type == 'WL' %}selected{% endif %}>Wedding Leave</option>
+                </select>
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="pending" {% if form.status.value == 'pending' or object and object.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if form.status.value == 'approved' or object and object.status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if form.status.value == 'rejected' or object and object.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <label class="form-label">Reason</label>
+                {% if object %}
+                <textarea name="reason" class="form-control" rows="3">{{ object.reason|default:'' }}</textarea>
+                {% else %}
+                <textarea name="reason" class="form-control" rows="3">{{ form.reason.value|default:'' }}</textarea>
+                {% endif %}
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save
+                </button>
+                <a href="{% url 'leave:leave_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

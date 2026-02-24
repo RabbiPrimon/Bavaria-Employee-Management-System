@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit{% endif %} Attendance - Bavaria Garments{% endblock %}
+{% block page_title %}{% if object %}Edit{% else %}Mark{% endif %} Attendance{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>{% if object %}Edit{% else %}Mark{% endif %} Attendance</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+                <label class="form-label">Employee *</label>
+                {{ form.employee }}
+                {% if form.employee.errors %}
+                <div class="text-danger">{{ form.employee.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Date *</label>
+                {% if object %}
+                <input type="date" name="date" class="form-control" value="{{ object.date|date:'Y-m-d' }}" required>
+                {% else %}
+                <input type="date" name="date" class="form-control" value="{{ form.date.value|default:'' }}" required>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Check In Time</label>
+                {% if object and object.check_in_time %}
+                <input type="time" name="check_in_time" class="form-control" value="{{ object.check_in_time|date:'H:i' }}">
+                {% else %}
+                <input type="time" name="check_in_time" class="form-control" value="{{ form.check_in_time.value|default:'' }}">
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Check Out Time</label>
+                {% if object and object.check_out_time %}
+                <input type="time" name="check_out_time" class="form-control" value="{{ object.check_out_time|date:'H:i' }}">
+                {% else %}
+                <input type="time" name="check_out_time" class="form-control" value="{{ form.check_out_time.value|default:'' }}">
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Break Duration (minutes)</label>
+                {% if object %}
+                <input type="number" name="break_duration" class="form-control" min="0" value="{{ object.break_duration|default:'0' }}">
+                {% else %}
+                <input type="number" name="break_duration" class="form-control" min="0" value="{{ form.break_duration.value|default:'0' }}">
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="present" {% if form.status.value == 'present' or object and object.status == 'present' %}selected{% endif %}>Present</option>
+                    <option value="absent" {% if form.status.value == 'absent' or object and object.status == 'absent' %}selected{% endif %}>Absent</option>
+                    <option value="leave" {% if form.status.value == 'leave' or object and object.status == 'leave' %}selected{% endif %}>On Leave</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save
+                </button>
+                <a href="{% url 'attendance:attendance_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
